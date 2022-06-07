@@ -6,13 +6,18 @@ let mode = "all";
 let filterList = [];
 
 addButton.addEventListener("click", addTask);
-taskInput.onchange = ("enter",addTask);
 
 for (let i = 1; i < tabs.length; i++) {
   tabs[i].addEventListener("click", function (event) {
     filter(event);
   });
   console.log(tabs);
+}
+function enterkey() {
+  if (window.event.keyCode == 13) {
+    
+    addTask();
+  }
 }
 
 function addTask() {
@@ -21,16 +26,20 @@ function addTask() {
     taskContent: taskInput.value,
     isComplete: false,
   };
-  if(document.getElementById("task-input","add-button").value==""){
-     alert("할일을 입력하세요");
-     return;
-      }
-  if (task == 1){ task = 1; return true;}else{ alert("지금 처리중입니다. 잠시만 기다려 주세요.");
-  taskList.push(task);
-  console.log(taskList);
-  document.getElementById("task-input","add-button").value ='';
-  render();
-  return false;
+  if (document.getElementById("task-input", "add-button").value == "") {
+    alert("할일을 입력하세요");
+    return;
+  }
+  if (task == 1) {
+    task = 1;
+    return true;
+  } else {
+    alert("지금 처리중입니다. 잠시만 기다려 주세요.");
+    taskList.push(task);
+    console.log(taskList);
+    document.getElementById("task-input", "add-button").value = "";
+    render();
+    return false;
   }
 }
 
@@ -88,7 +97,6 @@ function deleteTask(id) {
 function filter(event) {
   mode = event.target.id;
   filterList = [];
-  //테스크탭스 라인 스타일
   document.getElementById("under-line").style.width =
     event.target.offsetWidth + "px";
   document.getElementById("under-line").style.top =
