@@ -57,7 +57,7 @@ function render() {
   let resultHTML = "";
   for (let i = 0; i < list.length; i++) {
     if (list[i].isComplete) {
-      resultHTML += `<div class="task task-done" id="${list[i].id}">
+      resultHTML += `<div class="task" id="${list[i].id}">
         <div class="div-flex">  
         <button class="reply" onclick="toggleComplete('${list[i].id}')"><i class='fas fa-check-circle' style='font-size:20px'></i></button>
         <span class="line-through">${list[i].taskContent}</span>
