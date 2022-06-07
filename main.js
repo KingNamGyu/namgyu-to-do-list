@@ -30,17 +30,10 @@ function addTask() {
     alert("할일을 입력하세요");
     return;
   }
-  if (task == 1) {
-    task = 1;
-    return true;
-  } else {
-    alert("지금 처리중입니다. 잠시만 기다려 주세요.");
     taskList.push(task);
     console.log(taskList);
     document.getElementById("task-input", "add-button").value = "";
     render();
-    return false;
-  }
 }
 
 function render() {
