@@ -34,7 +34,7 @@ body {
 
 #under-line {
   height: 4px;
-  background-color: pink;
+  background-color: rgb(251, 149, 166);
   position: absolute;
   width: 65px;
   left: 0px;
@@ -97,11 +97,6 @@ body {
   top: -2px;
   z-index: 1;
 }
-.task-done {
-  background-color: lightgrey;
-  transition: 0.5s;
-}
-
 .task-tabs div {
   cursor: pointer;
   font-weight: lighter;
