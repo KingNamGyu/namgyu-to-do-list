@@ -143,3 +143,8 @@ body {
 .input-area {
   display: flex;
 }
+@media screen and (max-width: 30rem) {
+  .button-box button {
+    width: 50px
+  }
+}
