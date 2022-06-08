@@ -59,7 +59,7 @@ function render() {
     if (list[i].isComplete) {
       resultHTML += `<div class="task" id="${list[i].id}">
         <div class="div-flex">  
-        <button class="reply" onclick="toggleComplete('${list[i].id}')"><i class='fas fa-check-circle' style='font-size:20px'></i></button>
+        <button class="check" onclick="toggleComplete('${list[i].id}')"><i class='fas fa-check-circle' style='font-size:20px'></i></button>
         <span class="line-through">${list[i].taskContent}</span>
         </div>
         <div class="button-box">
@@ -69,7 +69,7 @@ function render() {
     } else {
       resultHTML += `<div class="task" id="${list[i].id}" >
       <div class="div-flex">  
-      <button class="reply" onclick="toggleComplete('${list[i].id}')"></button>
+      <button class="check-box" onclick="toggleComplete('${list[i].id}')"></button>
       <span>${list[i].taskContent}</span> 
       </div>
       <div class="button-box">  
