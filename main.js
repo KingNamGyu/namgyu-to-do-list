@@ -1,144 +1,201 @@
-//유저가 값을 입력한다
-// enter키를 누르거나 + 버튼을 클릭하면, 할일이 추가된다, 아무것도 입력을 안했을시 입력하세요 알림창이 뜬다
-// delete버튼을 누르면 삭제 확인창이 뜨고 할일이 삭제된다
-// 빈 박스를 누르면 할일이 끝나면서 박스안에check표시가 되고 글에 밑줄이 간다
-//1. check박스 버튼을 클릭하는 순간 true false
-//2. true이면 끝난걸로 간주하고 밑줄 보여주기
-//3. false이면 안끝난걸로 간주하고 그대로
-// 진행중 끝남 탭을 누르면, 언더바가 이동한다
-// 끝남 탭은, 끝난 아이템만, 진행중탭은 진행중인 아이템만
-// 전체탭을 누르면 다시 전체아이템으로 돌아옴
+let news = [];
+let page = 1;
+let total_pages = 0;
+let searchButton = document.getElementById("search-button");
+let url;
+let menus = document.querySelectorAll("#menu-list button");
+menus.forEach((menu) =>
+  menu.addEventListener("click", (e) => getNewsByTopic(e))
+);
 
-let taskInput = document.getElementById("task-input");
-let addButton = document.getElementById("add-button");
-let tabs = document.querySelectorAll(".task-tabs div");
-let taskList = [];
-let mode = "all";
-let filterList = [];
 
-addButton.addEventListener("click", addTask);
-
-for (let i = 1; i < tabs.length; i++) {
-  tabs[i].addEventListener("click", function (event) {
-    filter(event);
-  });
-  console.log(tabs);
-}
-function enterkey() {
-  if (window.event.keyCode == 13) {
-    // 엔터키가 눌렸을 때 실행할 내용
-    addTask();
+//각 함수에서 필요한 url을 만든다
+//api호출 함수를 부른다
+const getNews = async () => {
+  try {
+    let header = new Headers({
+      "x-api-key": "_grRTHnrByqVKmIltgadR01-JP5CxqJ2e0zyHOI_sFY",
+    });
+    url.searchParams.set("page", page);
+    console.log("url은?", url);
+    let response = await fetch(url, { headers: header }); // ajax, http, fetch
+    let data = await response.json();
+    if (response.status == 200) {
+      if (data.total_hits == 0) {
+        throw new Error("검색된 결과값이 없습니다.");
+      }
+      news = data.articles;
+      total_pages = data.total_pages;
+      console.log(news);
+      render();
+      pagenation();
+    } else {
+      throw new Error(data.message);
+    }
+  } catch (error) {
+    console.log("잡힌 에러는", error.message);
+    errorRender(error.message);
   }
-}
+};
 
-function addTask() {
-  let task = {
-    id: randomIDGenerate(),
-    taskContent: taskInput.value,
-    isComplete: false,
-  };
-  if (document.getElementById("task-input", "add-button").value == "") {
-    alert("할일을 입력하세요");
+const getLatestNews = async () => {
+  url = new URL(
+    `https://api.newscatcherapi.com/v2/latest_headlines?countries=KR&page_size=10`
+  );
+  getNews();
+};
+
+const getNewsByTopic = async (event) => {
+  let topic = event.target.textContent.toLowerCase();
+  url = new URL(
+    `https://api.newscatcherapi.com/v2/latest_headlines?countries=KR&page_size=10&topic=${topic}`
+  );
+  getNews();
+};
+
+const getNewsByKeyword = async () => {
+  //1.검색 키워드 읽어오기
+  //2.url에 검색 키워드 부치기 
+  //3.헤더준비
+  //4.url부르기
+  //5.데이터 가져오기
+  //6.데이터 보여주기
+
+
+  let keyword = document.getElementById("search-input").value;
+  url = new URL(
+    `https://api.newscatcherapi.com/v2/search?q=${keyword}&page_size=10`
+  );
+  if (document.getElementById("search-input").value == "") {
+    alert("검색어를 입력해주세요.");
     return;
   }
-  taskList.push(task);
-  console.log(taskList);
-  document.getElementById("task-input", "add-button").value = "";
-  render();
-}
+  document.getElementById("search-input").value = "";
+  getNews();
+};
 
-function render() {
-  let list = [];
-  if (mode == "all") {
-    list = taskList;
-  } else if (mode == "ongoing" || mode == "done") {
-    list = filterList;
-  }
-  let resultHTML = "";
-  for (let i = 0; i < list.length; i++) {
-    if (list[i].isComplete) {
-      resultHTML += `<div class="task" id="${list[i].id}">
-        <div class="div-flex">  
-        <button class="check" onclick="toggleComplete('${list[i].id}')"><i class='fas fa-check-circle' style='font-size:20px'></i></button>
-        <span class="line-through">${list[i].taskContent}</span>
+
+const render = () => {
+  let newsHTML = "";
+  newsHTML = news
+    .map((item) => {
+      return `<div class="row news">
+        <div class="col-lg-4">
+          <img
+            class="news-img-size"
+            src="${
+              item.media ||
+              "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRqEWgS0uxxEYJ0PsOb2OgwyWvC0Gjp8NUdPw&usqp=CAU"
+            }"
+          />
         </div>
-        <div class="button-box">
-        <button class="trash" onclick="deleteTask('${list[i].id}')"><i class="fas fa-trash icon-button"></i></button>
+        <div class="col-lg-8">
+          <h1>${item.title}</h1>
+          <p>${
+            item.summary == null || item.summary == ""
+              ? "내용없음"
+              : item.summary.length > 200
+              ? item.summary.substring(0, 200) + "..."
+              : item.summary
+          }</p>
+          <div>${item.rights || "no source"}  ${moment(
+        item.published_date
+      ).fromNow()} * ${item.published_date}</div>
         </div>
-       </div>`;
-    } else {
-      resultHTML += `<div class="task" id="${list[i].id}" >
-      <div class="div-flex">  
-      <button class="check-box" onclick="toggleComplete('${list[i].id}')"></button>
-      <span>${list[i].taskContent}</span> 
-      </div>
-      <div class="button-box">  
-      <button class="trash" onclick="deleteTask('${list[i].id}')"><i class="fas fa-trash icon-button"></i></button>
-      </div>
-  </div>`;
-    }
+      </div>`;
+    })
+    .join("");
+
+  document.getElementById("news-board").innerHTML = newsHTML;
+};
+
+const errorRender = (message) => {
+  let errorHTML = `<div class="alert alert-danger text-center" role="alert">
+${message}
+</div>`;
+  document.getElementById("news-board").innerHTML = errorHTML;
+};
+
+const pagenation = () => {
+  let pagenationHTML = ``;
+  //total_page
+  //page
+  //page group
+  let pageGroup = Math.ceil(page / 5);
+  //list
+  let last = pageGroup * 5;
+  if (last > total_pages) {
+    //마지막 그룹이 5개 이하이면
+    last = total_pages;
   }
-  document.getElementById("task-board").innerHTML = resultHTML;
+
+  let first = last - 4 <= 0 ? 1 : last - 4; // 첫그룹이 5이하이면
+  if (first >= 6) {
+    pagenationHTML = `<li class="page-item" onclick="pageClick(1)">
+                        <a class="page-link" href='#js-bottom'>&lt;&lt;</a>
+                      </li>
+                      <li class="page-item" onclick="pageClick(${page - 1})">
+                        <a class="page-link" href='#js-bottom'>&lt;</a>
+                      </li>`;
+  }
+  for (let i = first; i <= last; i++) {
+    pagenationHTML += `<li class="page-item ${i == page ? "active" : ""}" >
+                        <a class="page-link" href='#js-bottom' onclick="pageClick(${i})" >${i}</a>
+                       </li>`;
+  }
+
+  if (last < total_pages) {
+    pagenationHTML += `<li class="page-item" onclick="pageClick(${page + 1})">
+                        <a  class="page-link" href='#js-program-detail-bottom'>&gt;</a>
+                       </li>
+                       <li class="page-item" onclick="pageClick(${total_pages})">
+                        <a class="page-link" href='#js-bottom'>&gt;&gt;</a>
+                       </li>`;
+  }
+
+  document.querySelector(".pagination").innerHTML = pagenationHTML;
+};
+
+const pageClick = (pageNum) => {
+  //7.클릭이벤트 세팅
+  page = pageNum;
+  window.scrollTo({ top: 0, behavior: "smooth" });
+  getNews();
+};
+
+const moveToPage = (pageNum) => {
+  //1.이동하고싶은 페이지를 알고
+  page = pageNum;
+
+  //2.이동하고싶은 페이지를 가지고 api를 다시 호출해주자.
+  getNews();
+};
+
+const openNav = () => {
+  document.getElementById("mySidenav").style.width = "250px";
+};
+
+const closeNav = () => {
+  document.getElementById("mySidenav").style.width = "0";
+};
+
+const openSearchBox = () => {
+  //검색창 누르면 보이고 다시 누르면 사라짐
+  let inputArea = document.getElementById("input-area");
+  if (inputArea.style.display === "inline") {
+    inputArea.style.display = "none";
+  } else {
+    inputArea.style.display = "inline";
+  }
+};
+
+function enterkey() {
+  
+  if (window.event.keyCode == 13) {
+    
+    getNewsByKeyword();
+  }
 }
 
-function toggleComplete(id) {
-  for (let i = 0; i < taskList.length; i++) {
-    if (taskList[i].id == id) {
-      taskList[i].isComplete = !taskList[i].isComplete;
-      break;
-    }
-  }
-  render();
-  console.log(taskList);
-}
-function deleteTask(id) {
-  let confirm_val = confirm("정말 삭제하시겠습니까?");
-  if (confirm_val == true) {
-    for (let i = 0; i < taskList.length; i++) {
-      if (taskList[i].id == id) {
-        filterList.splice(i, 1);
-        taskList.splice(i, 1);
-        break;
-      }else{
-      }
-    }
-    render();
-  }
-   else if (confirm_val == false) {
-  }
-}
-
-function filter(event) {
-  mode = event.target.id;
-  filterList = [];
-  //테스크탭스 라인 스타일
-  document.getElementById("under-line").style.width =
-    event.target.offsetWidth + "px";
-  document.getElementById("under-line").style.top =
-    event.target.offsetTop + event.target.offsetHeight + "px";
-  document.getElementById("under-line").style.left =
-    event.target.offsetLeft + "px";
-  if (mode == "all") {
-    render();
-  } else if (mode == "ongoing") {
-    for (let i = 0; i < taskList.length; i++) {
-      if (taskList[i].isComplete == false) {
-        filterList.push(taskList[i]);
-
-      }
-    }
-    render();
-  } else if (mode == "done") {
-    for (let i = 0; i < taskList.length; i++) {
-      if (taskList[i].isComplete == true) {
-        filterList.push(taskList[i]);
-      }
-    }
-    render();
-  }
-  console.log(filterList);
-}
-
-function randomIDGenerate() {
-  return "_" + Math.random().toString(36).substring(2, 9);
-}
+searchButton.addEventListener("click", getNewsByKeyword);
+getLatestNews();
